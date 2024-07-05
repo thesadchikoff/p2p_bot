@@ -1,0 +1,122 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String     @id
+  username      String     @unique
+  login         String?    @unique
+  isAdmin       Boolean    @default(false)
+  currency      Currency?  @relation(fields: [currencyId], references: [id], onDelete: SetNull)
+  currencyId    Int?       @map("currency_id")
+  wallet        Wallet?    @relation(fields: [walletId], references: [id], onDelete: SetNull)
+  walletId      String?    @unique @map("wallet_id")
+  fromTransfers Transfer[] @relation("from_user")
+  toTransfers   Transfer[] @relation("to_user")
+
+  createdAt                 DateTime              @default(now()) @map("created_at")
+  Contract                  Contract[]
+  SellerContractTransaction ContractTransaction[] @relation(name: "seller")
+  BuyerContractTransaction  ContractTransaction[] @relation(name: "buyer")
+  Requisite                 Requisite[]
+
+  @@map("users")
+}
+
+model Currency {
+  id        Int      @id @default(autoincrement())
+  value     String
+  key       String
+  createdAt DateTime @default(now()) @map("created_at")
+  User      User[]
+
+  @@map("currencies")
+}
+
+model Wallet {
+  id             String  @id @default(uuid())
+  address        String  @unique
+  privateKey     String  @unique @map("private_key")
+  mnemonicPhrase String? @map("mnemonic_phrase")
+  user           User?
+
+  @@map("wallets")
+}
+
+model Transfer {
+  id         Int    @id @default(autoincrement())
+  fromUser   User   @relation(name: "from_user", fields: [fromUserId], references: [id])
+  fromUserId String @map("from_user")
+  toUser     User   @relation(name: "to_user", fields: [toUserId], references: [id])
+  count      Float
+  toUserId   String @map("to_user_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("transfers")
+}
+
+model Requisite {
+  id                    Int           @id @default(autoincrement())
+  paymentMethod         PaymentMethod @relation(fields: [paymentMethodId], references: [id])
+  paymentMethodId       Int           @map("payment_method_id")
+  phoneOrbankCardNumber String
+  currency              String
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+}
+
+model PaymentMethod {
+  id        Int         @id @default(autoincrement())
+  name      String
+  code      String
+  Contract  Contract[]
+  Requisite Requisite[]
+
+  @@map("payment_method")
+}
+
+model Contract {
+  id              Int           @id @default(autoincrement())
+  author          User          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  amount          Float
+  type            String?
+  price           Float
+  maxPrice        Float?        @map("max_price")
+  code            String        @default(cuid())
+  userId          String        @map("user_id")
+  paymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id])
+  paymentMethodId Int           @map("payment_method_id")
+  currency        String?
+  comment         String?
+
+  @@map("contract")
+}
+
+model ContractTransaction {
+  id         String  @id @default(uuid())
+  code       String
+  seller     User    @relation(name: "seller", fields: [sellerId], references: [id])
+  sellerId   String  @map("seller_id")
+  buyer      User    @relation(name: "buyer", fields: [buyerId], references: [id])
+  buyerId    String  @map("buyer_id")
+  amount     Float
+  isAccepted Boolean @map("is_accepted")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("contract_transaction")
+}
