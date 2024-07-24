@@ -1,4 +1,4 @@
-import bitcore, { Address, Networks } from 'bitcore-lib'
+import * as bitcore from 'bitcore-lib'
 // @ts-ignore
 import axios from 'axios'
 import { bot } from '../config/bot'
@@ -11,7 +11,7 @@ export const replenishBtc = async (
 	sourceAddress: string,
 
 	amountToSend: number,
-	network = Networks.testnet
+	network = bitcore.Networks.testnet
 ) => {
 	const user = await prisma.user.findFirst({
 		where: {
@@ -33,7 +33,7 @@ export const replenishBtc = async (
 	let bn = bitcore.crypto.BN.fromBuffer(hash)
 	let address2 = new bitcore.PrivateKey(bn, network).toAddress()
 
-	async function getUTXOs(address: Address) {
+	async function getUTXOs(address: bitcore.Address) {
 		const url = `https://blockstream.info/testnet/api/address/${address}/utxo`
 		const response = await axios.get(url)
 		// @ts-ignore

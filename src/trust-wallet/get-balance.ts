@@ -1,10 +1,10 @@
 import axios from 'axios'
-import bitcore from 'bitcore-lib'
+import * as bitcore from 'bitcore-lib'
 
 // Функция для получения UTXO с использованием Blockstream API на Testnet
 // @ts-ignore
 async function getUTXOs(address) {
-	const url = `https://blockstream.info/testnet/api/address/${address}/utxo`
+	const url = `https://blockstream.info/api/address/${address}/utxo`
 	const response = await axios.get(url)
 	return response.data.map((utxo: any) => ({
 		txId: utxo.txid,

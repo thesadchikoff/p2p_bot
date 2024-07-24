@@ -13,12 +13,6 @@ export const marketKeyboard: InlineKeyboardButton[][] = [
 	],
 	[
 		{
-			callback_data: 'my_contracts',
-			text: '📦 Мои сделки',
-		},
-	],
-	[
-		{
 			callback_data: 'my_ads',
 			text: '📄 Мои объявления',
 		},

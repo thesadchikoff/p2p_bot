@@ -3,6 +3,11 @@ import type { Currency, CurrencyData } from '../@types/curreny'
 import { url } from '../config/api'
 
 class CurrencyService {
+	async convertRubleToBTC(value: number) {
+		const rate = await this.getCurrency('bitcoin')
+		let bitcoin = value / rate?.bitcoin.rub!
+		return bitcoin.toFixed(8)
+	}
 	async getCurrency<T extends Currency>(
 		currency: T
 	): Promise<Record<T, CurrencyData> | undefined> {

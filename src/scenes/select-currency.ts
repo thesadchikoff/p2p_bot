@@ -93,7 +93,7 @@ export const SelectCurrency = new Scenes.WizardScene<WizardContext>(
 			)
 		} catch (error) {
 			console.log(error)
-			await ctx.reply('Ошибка при обработке данных')
+			ctx.reply('Ошибка при обработке данных')
 		}
 		return ctx.wizard.next()
 	},
@@ -133,10 +133,11 @@ export const SelectCurrency = new Scenes.WizardScene<WizardContext>(
 					},
 				}
 			)
-			return ctx.wizard.next()
+			return ctx.scene.leave()
 		} catch (error) {
-			await ctx.reply('Error')
+			console.log(error)
+			ctx.scene.leave()
+			return ctx.reply('❗️ Произошла непредвиденная ошибка')
 		}
-		return ctx.scene.leave()
 	}
 )

@@ -1,6 +1,6 @@
 import { Networks, PrivateKey } from 'bitcore-lib'
 // @ts-ignore
-import Mnemonic from 'bitcore-mnemonic'
+import * as Mnemonic from 'bitcore-mnemonic'
 
 export const createWallet = (network = Networks.mainnet) => {
 	let privateKey = new PrivateKey(network.name)

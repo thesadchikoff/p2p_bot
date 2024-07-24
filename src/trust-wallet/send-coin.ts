@@ -1,4 +1,11 @@
-import bitcore, { Address, Networks } from 'bitcore-lib'
+import {
+	Address,
+	crypto,
+	Networks,
+	PrivateKey,
+	Script,
+	Transaction,
+} from 'bitcore-lib'
 // @ts-ignore
 import axios from 'axios'
 import { bot } from '../config/bot'
@@ -26,10 +33,10 @@ export const sendCoin = async (
 	let inputCount = 0
 	let outputCount = 2
 	let value = Buffer.from('The test phrase for transaction buffer')
-	let hash = bitcore.crypto.Hash.sha256(value)
+	let hash = crypto.Hash.sha256(value)
 	// @ts-ignore
-	let bn = bitcore.crypto.BN.fromBuffer(hash)
-	let address2 = new bitcore.PrivateKey(bn, network).toAddress()
+	let bn = crypto.BN.fromBuffer(hash)
+	let address2 = new PrivateKey(bn, network).toAddress()
 
 	async function getUTXOs(address: Address) {
 		const url = `https://blockstream.info/api/address/${address}/utxo`
@@ -39,13 +46,13 @@ export const sendCoin = async (
 			txId: utxo.txid,
 			outputIndex: utxo.vout,
 			address: address,
-			script: bitcore.Script.buildPublicKeyHashOut(address).toString(),
+			script: Script.buildPublicKeyHashOut(address).toString(),
 			satoshis: utxo.value,
 		}))
 	}
 	// Функция для отправки транзакции с использованием Blockstream API на Testnet
 	async function broadcastTransaction(serializedTx: any) {
-		const url = 'https://blockstream.info/testnet/api/tx'
+		const url = 'https://blockstream.info/api/tx'
 		const response = await axios.post(url, serializedTx, {
 			headers: {
 				'Content-Type': 'text/plain',
@@ -60,7 +67,7 @@ export const sendCoin = async (
 			const utxos = await getUTXOs(sourceAddress)
 			if (utxos.length === 0) {
 				return bot.telegram.sendMessage(
-					telegramId,
+					360000840,
 					'⚠️ <b>Перевод не выполнен</b>\n\nUTXo записи не обнаружены, вероятнее всего, баланс на вашем кошельке отсутствует',
 					{
 						parse_mode: 'HTML',
@@ -85,7 +92,7 @@ export const sendCoin = async (
 			// Проверка сумм
 			if (amountToSend <= 0) {
 				return bot.telegram.sendMessage(
-					telegramId,
+					360000840,
 					'⚠️ <b>Перевод не выполнен</b>\n\nСумма для отправки должна быть положительным целым числом',
 					{
 						parse_mode: 'HTML',
@@ -94,7 +101,7 @@ export const sendCoin = async (
 			}
 			if (satoshisPerByte <= 0) {
 				return bot.telegram.sendMessage(
-					telegramId,
+					360000840,
 					'⚠️ <b>Перевод не выполнен</b>\n\nКоличество сатоши на байт должно быть положительным целым числом',
 					{
 						parse_mode: 'HTML',
@@ -116,7 +123,7 @@ export const sendCoin = async (
 			utxos.forEach((utxo: any) => {
 				if (utxo.satoshis <= 0) {
 					return bot.telegram.sendMessage(
-						telegramId,
+						360000840,
 						`⚠️ <b>Перевод не выполнен</b>\n\nНедопустимые значения UTXO satoshis: ${utxo.satoshis}`,
 						{
 							parse_mode: 'HTML',
@@ -135,7 +142,7 @@ export const sendCoin = async (
 				}
 			})
 
-			const tx = new bitcore.Transaction()
+			const tx = new Transaction()
 				.from(utxos)
 				.to(recipientAddress, satoshiToSend)
 				.change(sourceAddress!)
@@ -145,7 +152,7 @@ export const sendCoin = async (
 			const serializedTx = tx.serialize()
 			const txid = await broadcastTransaction(serializedTx)
 			return bot.telegram.sendMessage(
-				telegramId,
+				360000840,
 				`✅ <b>Перевод выполнен</b>\n\nТранзакция успешно отправлена. TXID операции: ${txid}`,
 				{
 					parse_mode: 'HTML',
@@ -163,7 +170,7 @@ export const sendCoin = async (
 			)
 		} catch (err) {
 			return bot.telegram.sendMessage(
-				telegramId,
+				360000840,
 				// @ts-ignore
 				`⛔️ <b>Ошибка перевода</b>\n\nТранзакция совершилась с ошибкой: ${err.toString()}`,
 				{

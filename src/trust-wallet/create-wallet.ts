@@ -16,7 +16,7 @@ export const createWallet = async (
 	if (!user || user.wallet) {
 		return undefined
 	}
-	const wallet = createHDWallet(Networks.testnet)
+	const wallet = createHDWallet(Networks.mainnet)
 	await prisma.wallet.create({
 		data: {
 			user: {

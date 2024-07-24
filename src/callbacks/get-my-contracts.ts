@@ -26,9 +26,16 @@ export const getMyContracts = async (ctx: SceneContext) => {
 			return [
 				{
 					callback_data: `contract-item-${contract.id}`,
-					text: `${contract.type === 'sell' ? '🔹 Продажа' : '🔸 Покупка'} | ${
-						contract.amount
-					} BTC | ${currencyFormatter(contract.price, 'rub')} RUB`,
+					text: `${
+						contract.type === 'sell' ? '🔹 Продажа' : '🔸 Покупка'
+					} | ${currencyFormatter(
+						contract.amount,
+						contract.currency!
+					)} | ${currencyFormatter(contract.price, contract.currency!)} - ${
+						contract.maxPrice
+							? currencyFormatter(contract.maxPrice, contract.currency!)
+							: null
+					}`,
 				},
 			]
 		}

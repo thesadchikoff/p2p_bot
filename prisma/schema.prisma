@@ -14,24 +14,44 @@ datasource db {
 }
 
 model User {
-  id            String     @id
-  username      String     @unique
-  login         String?    @unique
-  isAdmin       Boolean    @default(false)
-  currency      Currency?  @relation(fields: [currencyId], references: [id], onDelete: SetNull)
-  currencyId    Int?       @map("currency_id")
-  wallet        Wallet?    @relation(fields: [walletId], references: [id], onDelete: SetNull)
-  walletId      String?    @unique @map("wallet_id")
-  fromTransfers Transfer[] @relation("from_user")
-  toTransfers   Transfer[] @relation("to_user")
+  id                   String     @id
+  username             String     @unique
+  login                String?    @unique
+  isAdmin              Boolean    @default(false)
+  currency             Currency?  @relation(fields: [currencyId], references: [id], onDelete: SetNull)
+  currencyId           Int?       @map("currency_id")
+  wallet               Wallet?    @relation(fields: [walletId], references: [id], onDelete: SetNull)
+  walletId             String?    @unique @map("wallet_id")
+  fromTransfers        Transfer[] @relation("from_user")
+  toTransfers          Transfer[] @relation("to_user")
+  totalAmountAdd       Int        @default(0) @map("total_amount_add")
+  totalAmountReplenish Int        @default(0) @map("total_amount_replenish")
 
-  createdAt                 DateTime              @default(now()) @map("created_at")
+  createdAt                 DateTime             @default(now()) @map("created_at")
   Contract                  Contract[]
-  SellerContractTransaction ContractTransaction[] @relation(name: "seller")
-  BuyerContractTransaction  ContractTransaction[] @relation(name: "buyer")
+  SellerContractTransaction ContractTransaction? @relation("seller")
+  BuyerContractTransaction  ContractTransaction? @relation("buyer")
   Requisite                 Requisite[]
+  Code                      Code[]               @relation(name: "subscribers")
+  myCodes                   Code[]               @relation(name: "creator")
+  BuyContractTransactionId  String?
+  SellContractTransactionId String?
+  AddressBook               AddressBook[]
 
   @@map("users")
+}
+
+model Code {
+  id          Int     @id @default(autoincrement())
+  creator     User?   @relation(name: "creator", fields: [creatorId], references: [id])
+  code        String
+  creatorId   String?
+  amountCoins Int     @map("amount_coins")
+  subscribers User[]  @relation(name: "subscribers")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("codes")
 }
 
 model Currency {
@@ -89,34 +109,47 @@ model PaymentMethod {
 }
 
 model Contract {
-  id              Int           @id @default(autoincrement())
-  author          User          @relation(fields: [userId], references: [id], onDelete: SetNull)
-  amount          Float
-  type            String?
-  price           Float
-  maxPrice        Float?        @map("max_price")
-  code            String        @default(cuid())
-  userId          String        @map("user_id")
-  paymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id])
-  paymentMethodId Int           @map("payment_method_id")
-  currency        String?
-  comment         String?
+  id                  Int                   @id @default(autoincrement())
+  author              User                  @relation(fields: [userId], references: [id], onDelete: SetNull)
+  amount              Float
+  type                String?
+  price               Float
+  maxPrice            Float?                @map("max_price")
+  code                String                @default(cuid())
+  userId              String                @map("user_id")
+  paymentMethod       PaymentMethod         @relation(fields: [paymentMethodId], references: [id])
+  paymentMethodId     Int                   @map("payment_method_id")
+  currency            String?
+  comment             String?
+  ContractTransaction ContractTransaction[]
 
   @@map("contract")
 }
 
-model ContractTransaction {
-  id         String  @id @default(uuid())
-  code       String
-  seller     User    @relation(name: "seller", fields: [sellerId], references: [id])
-  sellerId   String  @map("seller_id")
-  buyer      User    @relation(name: "buyer", fields: [buyerId], references: [id])
-  buyerId    String  @map("buyer_id")
-  amount     Float
-  isAccepted Boolean @map("is_accepted")
+model AddressBook {
+  id      Int    @id @default(autoincrement())
+  name    String
+  address String
+  user    User   @relation(fields: [userId], references: [id])
+  userId  String @map("user_id")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  @@map("address_book")
+}
+
+model ContractTransaction {
+  id         String   @id @default(uuid())
+  code       String   @default(cuid())
+  seller     User?    @relation(name: "seller", fields: [sellerId], references: [id])
+  sellerId   String?  @unique @map("seller_id")
+  buyer      User?    @relation(name: "buyer", fields: [buyerId], references: [id])
+  buyerId    String?  @unique @map("buyer_id")
+  amount     Float
+  isAccepted Boolean  @default(false) @map("is_accepted")
+  contract   Contract @relation(fields: [contractId], references: [id])
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  contractId Int      @map("contract_id")
 
   @@map("contract_transaction")
 }
